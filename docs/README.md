@@ -16,6 +16,14 @@ MediTrack 是一個以 **Flask + Bootstrap + Chart.js** 建立的輕量醫療資
 
 ---
 
+## Demo 連結
+
+🔗 [線上 Demo — MediTrack on Render](https://meditrack.onrender.com)
+
+（如遇啟動延遲，請等待 Render 伺服器自動喚醒約 1 分鐘）
+
+---
+
 ## 技術架構
 
 - Backend：Flask 3.0 + SQLAlchemy + Flask-Login  
