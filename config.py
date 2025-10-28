@@ -1,25 +1,24 @@
-# Inside the Config class:
+# Inside your Config class in config.py
 
-# --- Start of new, safer database configuration ---
+# --- Start of final, robust database configuration ---
 
-# 1. Get the database URL from Render's environment variables
+# 1. Get the raw database URL from Render's environment variables
 database_url = os.environ.get('DATABASE_URL')
 
-# 2. This will print the raw URL to your Render logs for debugging
-print(f"--- DEBUG: Raw DATABASE_URL received is: {database_url} ---")
+# 2. Check if the variable exists at all
+if not database_url:
+    raise ValueError("FATAL: DATABASE_URL environment variable not found.")
 
-# 3. This automatically fixes a common issue where the URL starts with 'postgres://'
-if database_url and database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql://", 1)
-    print(f"--- DEBUG: Corrected URL to: {database_url} ---")
+# 3. Clean up the URL by removing leading/trailing whitespace
+cleaned_url = database_url.strip()
 
-# 4. Set the final configuration variable
-SQLALCHEMY_DATABASE_URI = database_url
+# 4. Automatically fix the common 'postgres://' issue
+if cleaned_url.startswith("postgres://"):
+    cleaned_url = cleaned_url.replace("postgres://", "postgresql://", 1)
 
-# 5. Final check to make sure the URL exists
-if not SQLALCHEMY_DATABASE_URI:
-    raise ValueError("DATABASE_URL environment variable not found or is empty")
+# 5. Set the final configuration variable
+SQLALCHEMY_DATABASE_URI = cleaned_url
 
-# --- End of new configuration ---
+# --- End of final configuration ---
 
 SQLALCHEMY_TRACK_MODIFICATIONS = False
