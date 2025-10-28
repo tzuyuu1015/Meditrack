@@ -1,18 +1,25 @@
-# 之前定義的 basedir (要修正為 BASE_DIR)
-import os
-basedir = os.path.abspath(os.path.dirname(__file__))
+# Inside the Config class:
 
+# --- Start of new, safer database configuration ---
 
-class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-should-change-this'
+# 1. Get the database URL from Render's environment variables
+database_url = os.environ.get('DATABASE_URL')
 
-    # --- 修改這裡 ---
-    # 直接讀取環境變數，如果 Render 上沒設定好，就讓它直接報錯，這是正確的行為
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+# 2. This will print the raw URL to your Render logs for debugging
+print(f"--- DEBUG: Raw DATABASE_URL received is: {database_url} ---")
 
-    # 為了安全，你可以加上一個檢查，如果沒讀到就拋出錯誤
-    if SQLALCHEMY_DATABASE_URI is None:
-        raise ValueError("No SQLALCHEMY_DATABASE_URI set for the application")
-    # --- 修改結束 ---
+# 3. This automatically fixes a common issue where the URL starts with 'postgres://'
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+    print(f"--- DEBUG: Corrected URL to: {database_url} ---")
 
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+# 4. Set the final configuration variable
+SQLALCHEMY_DATABASE_URI = database_url
+
+# 5. Final check to make sure the URL exists
+if not SQLALCHEMY_DATABASE_URI:
+    raise ValueError("DATABASE_URL environment variable not found or is empty")
+
+# --- End of new configuration ---
+
+SQLALCHEMY_TRACK_MODIFICATIONS = False
