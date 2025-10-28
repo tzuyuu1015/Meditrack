@@ -1,4 +1,3 @@
-# seed_demo.py
 """
 建立 12 位示範病患，並為每位塞入 2~4 筆血壓(vitals)與 1~2 筆血糖(labs)，
 其中會刻意放幾筆超過門檻（SBP>=140 或 DBP>=90；GLU>=126 或 HbA1c>=6.5）
@@ -8,10 +7,12 @@ from datetime import datetime, timedelta
 import random
 from faker import Faker
 
-from app import create_app, db
+# 這裡的 db 和 models 會從 run.py 的 app_context 獲得正確的 session
+from app import db
 from app.models import Patient, VitalSign, LabResult
 
 fake = Faker("zh_TW")  # 產生台灣格式的名字、地址、電話
+
 
 def upsert_patients(n=12):
     # 若已經有資料就跳過建立，以免重複
@@ -35,6 +36,7 @@ def upsert_patients(n=12):
     db.session.commit()
     print(f"建立 {n} 位病患完成。")
 
+
 def seed_vitals():
     patients = Patient.query.all()
     now = datetime.utcnow()
@@ -55,12 +57,15 @@ def seed_vitals():
                 diastolic=dbp,
                 heart_rate=random.randint(60, 100),
                 spo2=random.randint(95, 100),
-                recorded_at=now - timedelta(days=random.randint(0, 20), hours=random.randint(0, 23))
+                recorded_at=now -
+                timedelta(days=random.randint(0, 20),
+                          hours=random.randint(0, 23))
             )
             db.session.add(vs)
             total += 1
     db.session.commit()
     print(f"已新增 {total} 筆 VitalSign。")
+
 
 def seed_labs():
     patients = Patient.query.all()
@@ -70,7 +75,7 @@ def seed_labs():
         k = random.randint(1, 2)  # 每人 1~2 筆
         for i in range(k):
             if random.random() < 0.35:
-                glu = random.uniform(128, 180)   # 故意高
+                glu = random.uniform(128, 180)  # 故意高
                 a1c = random.uniform(6.6, 8.2)
             else:
                 glu = random.uniform(90, 119)
@@ -79,18 +84,21 @@ def seed_labs():
                 patient_id=p.id,
                 glucose=round(glu, 1),
                 hba1c=round(a1c, 1),
-                recorded_at=now - timedelta(days=random.randint(0, 30), hours=random.randint(0, 23))
+                recorded_at=now -
+                timedelta(days=random.randint(0, 30),
+                          hours=random.randint(0, 23))
             )
             db.session.add(lr)
             total += 1
     db.session.commit()
     print(f"已新增 {total} 筆 LabResult。")
 
-if __name__ == "__main__":
-    app = create_app()
-    with app.app_context():
-        db.create_all()
-        upsert_patients(12)
-        seed_vitals()
-        seed_labs()
-        print("✅ Demo 資料建立完成！可以到 /reports 檢視")
+
+def seed_demo_data():
+    """
+    執行所有資料填充步驟：建立病患、血壓、血糖。
+    """
+    upsert_patients(12)
+    seed_vitals()
+    seed_labs()
+    print("✅ Demo 資料建立完成！")
