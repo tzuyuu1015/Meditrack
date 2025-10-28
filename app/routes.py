@@ -80,16 +80,34 @@ def dashboard():
     gly_pct = round(gly_count / total_patients * 100,
                     1) if total_patients else 0.0
 
-    # 4) 每週新增病患（近 10 週）— SQLite 寫法
+    # 4) 每週新增病患（近 10 週）— 修正為跨資料庫寫法
+    
+    # --- ↓↓↓ 這是唯一的修改處 ↓↓↓ ---
+    
+    # 檢查現在用的是哪種資料庫
+    dialect = db.engine.dialect.name
+    
+    if dialect == 'postgresql':
+        # 如果是 Render 上的 PostgreSQL，使用 to_char
+        # 'YYYY-WW' 代表 年-該年的第幾週 (e.g., "2025-42")
+        date_format_func = func.to_char(Patient.created_at, 'YYYY-WW')
+    else:
+        # 否則 (例如本地的 SQLite)，使用 strftime
+        # '%Y-%W' 代表 年-該年的第幾週 (e.g., "2025-42")
+        date_format_func = func.strftime('%Y-%W', Patient.created_at)
+
+    # 現在用這個「動態選擇」的函數來執行查詢
     weekly_rows = (
         db.session.query(
-            func.strftime('%Y-%W', Patient.created_at).label('year_week'),
+            date_format_func.label('year_week'),
             func.count(Patient.id)
         )
         .group_by('year_week')
         .order_by('year_week')
         .all()
     )
+    # --- ↑↑↑ 修改結束 ↑↑↑ ---
+
     labels = [r[0] for r in weekly_rows][-10:]
     values = [r[1] for r in weekly_rows][-10:]
 
@@ -382,7 +400,7 @@ def report_hypertension_csv():
     buf = io.StringIO()
     writer = csv.writer(buf)
     writer.writerow(["建立時間", "病歷號", "姓名", "電話", "SBP",
-                    "DBP", "HR", "SpO2", "測量時間"])
+                     "DBP", "HR", "SpO2", "測量時間"])
     for p, sbp, dbp, hr, sp, t in rows:
         writer.writerow([
             p.created_at.strftime("%Y-%m-%d %H:%M"),
@@ -505,7 +523,7 @@ def report_glycemia_csv():
     buf = io.StringIO()
     writer = csv.writer(buf)
     writer.writerow(["建立時間", "病歷號", "姓名", "電話",
-                    "Glucose(mg/dL)", "HbA1c(%)", "檢驗時間"])
+                     "Glucose(mg/dL)", "HbA1c(%)", "檢驗時間"])
     for p, glu, a1c, t in rows:
         writer.writerow([
             p.created_at.strftime("%Y-%m-%d %H:%M"),
