@@ -1,4 +1,5 @@
 # 之前定義的 basedir (要修正為 BASE_DIR)
+import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
