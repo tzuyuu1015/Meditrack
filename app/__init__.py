@@ -13,6 +13,12 @@ def create_app():
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(Config)
 
+    # --- 請把偵錯碼加在這裡 ---
+    print("--- DEBUG ---")
+    print(
+        f"The final DATABASE_URI is: '{app.config.get('SQLALCHEMY_DATABASE_URI')}'")
+    # --- 偵錯碼結束 ---
+
     db.init_app(app)
     login_manager.init_app(app)
 
