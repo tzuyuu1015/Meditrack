@@ -20,8 +20,9 @@ MediTrack 是一個以 **Flask + Bootstrap + Chart.js** 建立的輕量醫療資
 
 - Backend：Flask 3.0 + SQLAlchemy + Flask-Login  
 - Frontend：Bootstrap 5 + Chart.js  
-- Database：SQLite（可改 MySQL）  
-- Deployment：支援 venv 或 Docker 環境  
+- Database：SQLite（本地開發） / PostgreSQL（線上部署）
+- Deployment：支援 venv 或 Docker 環境，已部署至 Render
+
 
 ---
 
